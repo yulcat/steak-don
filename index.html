@@ -1,0 +1,449 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>🥩 스테키동 레시피</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+html, body { height: 100%; overflow: hidden; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; }
+body { background: #1a1a2e; color: #eee; }
+
+.page {
+  display: none;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  padding: 2rem 1.5rem;
+  text-align: center;
+  user-select: none;
+  -webkit-user-select: none;
+}
+.page.active { display: flex; }
+
+.page-num {
+  position: fixed;
+  top: 1rem;
+  right: 1rem;
+  font-size: 0.85rem;
+  color: #666;
+  z-index: 10;
+}
+
+.emoji { font-size: 4rem; margin-bottom: 1rem; }
+.title { font-size: 1.8rem; font-weight: 700; margin-bottom: 0.5rem; color: #e8b445; }
+.subtitle { font-size: 1rem; color: #999; margin-bottom: 1.5rem; }
+
+.content {
+  font-size: 1.15rem;
+  line-height: 1.8;
+  max-width: 360px;
+  text-align: left;
+}
+.content li { margin-bottom: 0.5rem; list-style: none; }
+.content li::before { content: '• '; color: #e8b445; }
+.highlight { color: #e8b445; font-weight: 600; }
+.warn { color: #ff6b6b; }
+
+.hint {
+  position: fixed;
+  bottom: 1.5rem;
+  left: 0; right: 0;
+  text-align: center;
+  font-size: 0.8rem;
+  color: #555;
+}
+
+/* Timer page */
+.timer-display {
+  font-size: 5rem;
+  font-weight: 200;
+  font-variant-numeric: tabular-nums;
+  color: #e8b445;
+  margin: 1rem 0;
+}
+.timer-label {
+  font-size: 1.3rem;
+  margin-bottom: 0.5rem;
+  min-height: 2rem;
+}
+.timer-step {
+  font-size: 1rem;
+  color: #999;
+  margin-bottom: 1.5rem;
+}
+.timer-btn {
+  background: #e8b445;
+  color: #1a1a2e;
+  border: none;
+  border-radius: 50%;
+  width: 80px;
+  height: 80px;
+  font-size: 1.5rem;
+  font-weight: 700;
+  cursor: pointer;
+  touch-action: manipulation;
+  transition: transform 0.1s;
+}
+.timer-btn:active { transform: scale(0.95); }
+.timer-btn.reset {
+  background: #444;
+  color: #eee;
+  width: 50px;
+  height: 50px;
+  font-size: 1rem;
+  margin-top: 1rem;
+}
+.timer-steps-indicator {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+.step-dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: #333;
+  transition: background 0.3s;
+}
+.step-dot.done { background: #e8b445; }
+.step-dot.current { background: #ff6b6b; animation: pulse 1s infinite; }
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
+/* Progress bar */
+.progress-bar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  height: 3px;
+  background: #e8b445;
+  transition: width 0.3s;
+  z-index: 20;
+}
+
+/* Touch zones */
+.touch-zone {
+  position: fixed;
+  top: 0;
+  bottom: 0;
+  z-index: 5;
+}
+.touch-zone.left { left: 0; width: 35%; }
+.touch-zone.right { right: 0; width: 65%; }
+</style>
+</head>
+<body>
+
+<div class="progress-bar" id="progress"></div>
+<div class="page-num" id="pageNum"></div>
+
+<!-- Page 0: Cover -->
+<div class="page active" data-page="0">
+  <div class="emoji">🥩</div>
+  <div class="title">스테키동</div>
+  <div class="subtitle">일본식 스테이크덮밥</div>
+  <div style="color: #666; font-size: 0.9rem; margin-top: 2rem;">화면을 터치해서 시작 →</div>
+</div>
+
+<!-- Page 1: Ingredients -->
+<div class="page" data-page="1">
+  <div class="emoji">🛒</div>
+  <div class="title">재료 (2인분)</div>
+  <div class="content">
+    <ul>
+      <li>스테이크용 소고기 <span class="highlight">2장 (400g)</span></li>
+      <li>밥 2공기</li>
+      <li>달걀 노른자 2개</li>
+      <li>양파 얇게 썬 것 약간</li>
+      <li>와사비 약간</li>
+      <li>소금, 후추</li>
+    </ul>
+  </div>
+</div>
+
+<!-- Page 2: Sauce -->
+<div class="page" data-page="2">
+  <div class="emoji">🍶</div>
+  <div class="title">소스</div>
+  <div class="content">
+    <ul>
+      <li>간장 <span class="highlight">4작은술</span></li>
+      <li>사과주스 <span class="highlight">2큰술</span></li>
+      <li>물 2큰술 + 식초 1/2작은술</li>
+      <li>설탕 <span class="highlight">3작은술</span></li>
+      <li>간 마늘 1/2작은술</li>
+    </ul>
+    <div style="color: #888; font-size: 0.85rem; margin-top: 1rem;">※ 미림/청주 대신 사과주스+물 사용</div>
+  </div>
+</div>
+
+<!-- Page 3: Prep -->
+<div class="page" data-page="3">
+  <div class="emoji">🧂</div>
+  <div class="title">1단계: 준비</div>
+  <div class="content">
+    <ul>
+      <li>고기를 <span class="highlight">30분 전</span>에 냉장고에서 꺼내기</li>
+      <li>실온으로 돌려놓기</li>
+      <li>굽기 직전에 <span class="highlight">소금, 후추</span> 뿌리고 손으로 문질러주기</li>
+    </ul>
+  </div>
+</div>
+
+<!-- Page 4: Timer Page -->
+<div class="page" data-page="4">
+  <div class="emoji">🔥</div>
+  <div class="title">2단계: 굽기</div>
+  <div class="timer-steps-indicator" id="timerDots"></div>
+  <div class="timer-label" id="timerLabel">준비 완료?</div>
+  <div class="timer-step" id="timerStep">버튼을 눌러 시작</div>
+  <div class="timer-display" id="timerDisplay">0:00</div>
+  <button class="timer-btn" id="timerBtn" onclick="handleTimer()">▶</button>
+  <button class="timer-btn reset" id="resetBtn" onclick="resetTimer()" style="display:none">↺</button>
+</div>
+
+<!-- Page 5: Resting -->
+<div class="page" data-page="5">
+  <div class="emoji">⏳</div>
+  <div class="title">3단계: 레스팅</div>
+  <div class="content">
+    <ul>
+      <li>고기를 꺼내서 <span class="highlight">종이호일</span>로 덮기</li>
+      <li><span class="highlight warn">10분</span> 레스팅 (육즙 안정)</li>
+      <li>⚠️ 바로 썰면 육즙 다 빠져요!</li>
+    </ul>
+  </div>
+  <div style="margin-top: 1.5rem;">
+    <button class="timer-btn" style="width:auto; padding:0 2rem; border-radius:2rem; height:50px; font-size:1rem;" onclick="startRestTimer(this)">10분 타이머 ▶</button>
+    <div id="restDisplay" style="font-size:3rem; font-variant-numeric:tabular-nums; color:#e8b445; margin-top:1rem; min-height:3.5rem;"></div>
+  </div>
+</div>
+
+<!-- Page 6: Sauce cook -->
+<div class="page" data-page="6">
+  <div class="emoji">🫕</div>
+  <div class="title">4단계: 소스</div>
+  <div class="content">
+    <ul>
+      <li>고기 구운 <span class="highlight">빈 팬</span>에 소스 재료 전부 넣기</li>
+      <li><span class="highlight">2분</span> 졸이기</li>
+      <li>고기 육즙이랑 섞이면서 맛 UP!</li>
+    </ul>
+  </div>
+</div>
+
+<!-- Page 7: Plating -->
+<div class="page" data-page="7">
+  <div class="emoji">🍚</div>
+  <div class="title">5단계: 플레이팅</div>
+  <div class="content">
+    <ul>
+      <li>밥 담기</li>
+      <li>고기 먹기 좋게 <span class="highlight">썰어서</span> 올리기</li>
+      <li>소스 끼얹기</li>
+      <li><span class="highlight">달걀 노른자</span> 올리기</li>
+      <li>양파 + 와사비 곁들이기</li>
+    </ul>
+  </div>
+</div>
+
+<!-- Page 8: Done -->
+<div class="page" data-page="8">
+  <div class="emoji">🎉</div>
+  <div class="title">완성!</div>
+  <div class="subtitle">맛있게 드세요 🐹</div>
+  <div style="color:#888; font-size:0.9rem; margin-top:2rem;">← 왼쪽 터치로 돌아가기</div>
+</div>
+
+<div class="touch-zone left" onclick="prevPage()"></div>
+<div class="touch-zone right" onclick="nextPage()"></div>
+<div class="hint">◀ 왼쪽: 이전 | 오른쪽: 다음 ▶</div>
+
+<script>
+// Page navigation
+let current = 0;
+const pages = document.querySelectorAll('.page');
+const total = pages.length;
+
+function showPage(n) {
+  pages.forEach(p => p.classList.remove('active'));
+  current = Math.max(0, Math.min(n, total - 1));
+  pages[current].classList.add('active');
+  document.getElementById('pageNum').textContent = current === 0 ? '' : `${current}/${total - 1}`;
+  document.getElementById('progress').style.width = `${(current / (total - 1)) * 100}%`;
+}
+
+function nextPage() {
+  if (current < total - 1) showPage(current + 1);
+}
+
+function prevPage() {
+  if (current > 0) showPage(current - 1);
+}
+
+// Keyboard support
+document.addEventListener('keydown', e => {
+  if (e.key === 'ArrowRight' || e.key === ' ') nextPage();
+  if (e.key === 'ArrowLeft') prevPage();
+});
+
+// Swipe support
+let touchStartX = 0;
+document.addEventListener('touchstart', e => { touchStartX = e.touches[0].clientX; }, { passive: true });
+
+// Cooking timer
+const cookSteps = [
+  { label: '🔥 강불 — 앞면', time: 60, fire: 'strong' },
+  { label: '🔅 약불 — 앞면', time: 60, fire: 'low' },
+  { label: '🔄 뒤집기!', time: 0, fire: 'flip' },
+  { label: '🔥 강불 — 뒷면', time: 30, fire: 'strong' },
+  { label: '🔅 약불 — 뒷면', time: 60, fire: 'low' },
+];
+
+let stepIdx = -1;
+let remaining = 0;
+let timerInterval = null;
+let timerRunning = false;
+
+function initDots() {
+  const dots = document.getElementById('timerDots');
+  dots.innerHTML = cookSteps.filter(s => s.time > 0).map((_, i) =>
+    `<div class="step-dot" id="dot${i}"></div>`
+  ).join('');
+}
+initDots();
+
+function updateTimerDisplay() {
+  const m = Math.floor(remaining / 60);
+  const s = remaining % 60;
+  document.getElementById('timerDisplay').textContent = `${m}:${s.toString().padStart(2, '0')}`;
+}
+
+function handleTimer() {
+  if (timerRunning) {
+    // Pause
+    clearInterval(timerInterval);
+    timerRunning = false;
+    document.getElementById('timerBtn').textContent = '▶';
+    return;
+  }
+
+  if (stepIdx === -1 || remaining === 0) {
+    // Next step
+    stepIdx++;
+    // Skip flip step (time=0)
+    if (stepIdx < cookSteps.length && cookSteps[stepIdx].time === 0) {
+      document.getElementById('timerLabel').textContent = cookSteps[stepIdx].label;
+      document.getElementById('timerStep').textContent = '뒤집고 버튼 눌러주세요!';
+      document.getElementById('timerDisplay').textContent = '🔄';
+      document.getElementById('timerBtn').textContent = '▶';
+      updateDots();
+      return;
+    }
+
+    if (stepIdx >= cookSteps.length) {
+      document.getElementById('timerLabel').textContent = '✅ 굽기 완료!';
+      document.getElementById('timerStep').textContent = '다음 페이지로 →';
+      document.getElementById('timerDisplay').textContent = '🎉';
+      document.getElementById('timerBtn').style.display = 'none';
+      document.getElementById('resetBtn').style.display = '';
+      return;
+    }
+
+    remaining = cookSteps[stepIdx].time;
+  }
+
+  const step = cookSteps[stepIdx];
+  document.getElementById('timerLabel').textContent = step.label;
+  document.getElementById('timerStep').textContent = `${step.time}초`;
+  document.getElementById('timerBtn').textContent = '⏸';
+  timerRunning = true;
+  updateDots();
+
+  timerInterval = setInterval(() => {
+    remaining--;
+    updateTimerDisplay();
+    if (remaining <= 0) {
+      clearInterval(timerInterval);
+      timerRunning = false;
+      // Vibrate
+      if (navigator.vibrate) navigator.vibrate([200, 100, 200]);
+      // Beep
+      try {
+        const ctx = new AudioContext();
+        const osc = ctx.createOscillator();
+        osc.connect(ctx.destination);
+        osc.frequency.value = 800;
+        osc.start();
+        setTimeout(() => { osc.stop(); ctx.close(); }, 300);
+      } catch(e) {}
+      document.getElementById('timerBtn').textContent = '▶';
+      document.getElementById('timerStep').textContent = '다음 단계 →';
+      updateDots();
+    }
+  }, 1000);
+}
+
+function updateDots() {
+  let dotIdx = 0;
+  cookSteps.forEach((s, i) => {
+    if (s.time === 0) return;
+    const dot = document.getElementById(`dot${dotIdx}`);
+    if (!dot) return;
+    dot.className = 'step-dot';
+    if (i < stepIdx) dot.classList.add('done');
+    else if (i === stepIdx && timerRunning) dot.classList.add('current');
+    else if (i === stepIdx && remaining === 0) dot.classList.add('done');
+    dotIdx++;
+  });
+}
+
+function resetTimer() {
+  stepIdx = -1;
+  remaining = 0;
+  timerRunning = false;
+  clearInterval(timerInterval);
+  document.getElementById('timerLabel').textContent = '준비 완료?';
+  document.getElementById('timerStep').textContent = '버튼을 눌러 시작';
+  document.getElementById('timerDisplay').textContent = '0:00';
+  document.getElementById('timerBtn').textContent = '▶';
+  document.getElementById('timerBtn').style.display = '';
+  document.getElementById('resetBtn').style.display = 'none';
+  initDots();
+}
+
+// Rest timer
+let restInterval = null;
+function startRestTimer(btn) {
+  btn.style.display = 'none';
+  let rest = 600;
+  const disp = document.getElementById('restDisplay');
+  restInterval = setInterval(() => {
+    rest--;
+    const m = Math.floor(rest / 60);
+    const s = rest % 60;
+    disp.textContent = `${m}:${s.toString().padStart(2, '0')}`;
+    if (rest <= 0) {
+      clearInterval(restInterval);
+      disp.textContent = '✅ 완료!';
+      if (navigator.vibrate) navigator.vibrate([200, 100, 200, 100, 200]);
+      try {
+        const ctx = new AudioContext();
+        const osc = ctx.createOscillator();
+        osc.connect(ctx.destination);
+        osc.frequency.value = 1000;
+        osc.start();
+        setTimeout(() => { osc.stop(); ctx.close(); }, 500);
+      } catch(e) {}
+    }
+  }, 1000);
+}
+
+showPage(0);
+</script>
+</body>
+</html>
